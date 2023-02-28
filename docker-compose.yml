@@ -1,0 +1,35 @@
+version: "3"
+
+services:
+  nginx:
+    build:
+      dockerfile: Dockerfile
+      context: ./nginx
+    ports:
+      - "80:80"
+      - "443:443"
+      - "5433:5432"
+    restart: always
+    depends_on:
+      - fast-api
+  fast-api:
+    build: .
+    command: bash -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 80 --reload"
+    volumes:
+      - .:/app
+    ports:
+      - 8000:80
+  db:
+    image: postgres:13-alpine
+    volumes:
+      - project_data:/var/lib/postgresql/data/
+    expose:
+      - 5432
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=ProjectAdmin
+      - POSTGRES_PASSWORD=112123123
+      - POSTGRES_DB=project_db
+volumes:
+  project_data:
