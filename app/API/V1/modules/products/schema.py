@@ -7,6 +7,7 @@ class ProductBase(BaseModel):
     short_name: str = Field(..., alias="shortName")
     description: str
     price: int
+    stock: int
     category_id: int = Field(..., alias="categoryId")
 
     class Config:
@@ -18,6 +19,7 @@ class ProductBase(BaseModel):
                 "short_name": "Fruto seco",
                 "description": "Fruto seco",
                 "price": 1000,
+                "stock": 1000,
                 "category_id": 1,
             }
         }

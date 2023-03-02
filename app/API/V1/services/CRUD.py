@@ -1,4 +1,4 @@
-from typing import List, Literal
+from typing import List, Literal, Any
 from sqlalchemy.orm.session import Session
 from fastapi import status
 from fastapi.encoders import jsonable_encoder
@@ -11,7 +11,6 @@ from .schema import GetPaginated
 
 
 class CrudService:
-
     def __init__(self, Model: Base) -> None:
         self.Model = Model
 
@@ -28,9 +27,11 @@ class CrudService:
 
     def format_filter(self, col_name: str, filter_type: str, filter_value):
         switch = {
-            "str": self.Model.__getattribute__(self.Model, col_name).ilike("{}%".format(filter_value)),
+            "str": self.Model.__getattribute__(self.Model, col_name).ilike(
+                "{}%".format(filter_value)
+            ),
             "bool": self.Model.__getattribute__(self.Model, col_name) == filter_value,
-            "int": self.Model.__getattribute__(self.Model, col_name) == filter_value
+            "int": self.Model.__getattribute__(self.Model, col_name) == filter_value,
         }
 
         return switch.get(filter_type, None)
@@ -44,10 +45,12 @@ class CrudService:
         for item in filters_list:
 
             if hasattr(self.Model, item["col_name"]) and item["value"] != None:
-                generated_filters.append(self.format_filter(
-                    item["col_name"], item["type"], item["value"]))
+                generated_filters.append(
+                    self.format_filter(item["col_name"], item["type"], item["value"])
+                )
 
         return generated_filters
+
     """
     Get order option
     """
@@ -78,10 +81,15 @@ class CrudService:
             query = query.options(*body["options"])
 
         query = query.order_by(self.get_order_option(body["sort"]))
-        query = query.filter(and_(and_(or_(*filters_list), and_(*table_filters_list)),
-                                  self.Model.is_deleted == False))
+        query = query.filter(
+            and_(
+                and_(or_(*filters_list), and_(*table_filters_list)),
+                self.Model.is_deleted == False,
+            )
+        )
 
         return paginate(query, body["pag_params"])
+
     """
     Find row by id or code 
     """
@@ -91,15 +99,14 @@ class CrudService:
         found_item = None
 
         if hasattr(self.Model, "id"):
-            found_item = db.query(self.Model).filter(
-                self.Model.id == id).first()
+            found_item = db.query(self.Model).filter(self.Model.id == id).first()
         else:
-            found_item = db.query(self.Model).filter(
-                self.Model.code == id).first()
+            found_item = db.query(self.Model).filter(self.Model.code == id).first()
 
         if not found_item:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                                detail="Item no encontrado")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Item no encontrado"
+            )
         return found_item
 
     """
@@ -110,8 +117,11 @@ class CrudService:
         if not hasattr(self.Model, "name"):
             return None
 
-        item = db.query(self.Model).filter(
-            and_(self.Model.name == name, self.Model.is_deleted == False)).first()
+        item = (
+            db.query(self.Model)
+            .filter(and_(self.Model.name == name, self.Model.is_deleted == False))
+            .first()
+        )
 
         return item
 
@@ -126,8 +136,10 @@ class CrudService:
             item_by_name = self.find_by_name(body.name, db)
 
             if item_by_name:
-                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                                    detail="Nombre %s ya esta registrado" % (body.name))
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Nombre %s ya esta registrado" % (body.name),
+                )
 
         new_item = self.Model(**encoded_item)
 
@@ -141,7 +153,14 @@ class CrudService:
     Create sub items in a one-to-many relation
     """
 
-    def create_sub_item(self, SubModel: Base, parent_id: int, parent_col_name: str, items: List[dict], db: Session):
+    def create_sub_item(
+        self,
+        SubModel: Base,
+        parent_id: int,
+        parent_col_name: str,
+        items: List[dict],
+        db: Session,
+    ):
         for sub_item in items:
             encoded_sub_item = jsonable_encoder(sub_item, by_alias=False)
             encoded_sub_item[parent_col_name] = parent_id
@@ -177,8 +196,9 @@ class CrudService:
         found_item = self.find_one(id, db)
 
         if found_item.is_deleted:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                                detail="Item ya fue eliminado")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Item ya fue eliminado"
+            )
 
         found_item.is_deleted = True
 
@@ -186,7 +206,7 @@ class CrudService:
         db.commit()
         db.refresh(found_item)
 
-        return {"message": 'Item eliminado'}
+        return {"message": "Item eliminado"}
 
     """
     Update a db object with update body from request
