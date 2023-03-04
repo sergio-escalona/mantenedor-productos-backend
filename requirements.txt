@@ -85,4 +85,5 @@ uvicorn==0.20.0
 uvloop==0.17.0
 watchfiles==0.18.1
 websockets==10.4
+XlsxWriter==3.0.8
 zipp==3.12.1
