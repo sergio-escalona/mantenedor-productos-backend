@@ -1,6 +1,7 @@
 from typing import Optional, List
 from pydantic import BaseModel, Field
 
+
 class LoginSchema(BaseModel):
     email: str
     password: str
@@ -17,7 +18,8 @@ class LoginSchema(BaseModel):
 
 class MeResponseSchema(BaseModel):
     id: int
-    name: str
+    first_name: str
+    last_name: str
     email: str
 
     class Config:

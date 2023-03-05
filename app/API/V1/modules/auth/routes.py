@@ -35,7 +35,7 @@ load_dotenv()
 
 VAR = os.getenv("ENV")
 secret_key = os.getenv("CRYPT_SECRET_KEY")
-router = APIRouter()
+router = APIRouter(prefix="/auth", tags=["Auth"])
 security = HTTPBearer()
 
 # Verifica si esta autenticado
@@ -67,18 +67,19 @@ async def login_user(login_obj: LoginSchema, db: Session = Depends(get_database)
                 detail="Este correo no está registrado",
             )
 
-        # Separador de la contraseña encriptada
-        encrypted = login_obj.password.split(":")
-        # Se decofican las 2 partes
-        nonce = b64decode(encrypted[0])
-        encrypted = b64decode(encrypted[1])
-        # Se convierte la llave secreta en bytes
-        box = SecretBox(bytes(secret_key, encoding="utf8"))
-        # Se desencripta la contraseña
-        decrypted = box.decrypt(encrypted, nonce).decode("utf-8")
+        # # Separador de la contraseña encriptada
+        # encrypted = login_obj.password.split(":")
+        # # Se decofican las 2 partes
+        # nonce = b64decode(encrypted[0])
+        # encrypted = b64decode(encrypted[1])
+        # # Se convierte la llave secreta en bytes
+        # box = SecretBox(bytes(secret_key, encoding="utf8"))
+        # # Se desencripta la contraseña
+        # decrypted = box.decrypt(encrypted, nonce).decode("utf-8")
 
         # Verifica si las contraseñas coinciden
-        match_password = verify_password(decrypted, found_user.password)
+        # match_password = verify_password(decrypted, found_user.password)
+        match_password = verify_password(login_obj.password, found_user.password)
         if not match_password:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN, detail="Contraseña incorrecta"
