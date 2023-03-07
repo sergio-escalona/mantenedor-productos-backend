@@ -28,7 +28,13 @@ from ...middlewares.auth import JWTBearer, decodeJWT
 
 from ...helpers.mailer import send_recover_mail
 from ..users.model import User
-from .schema import LoginSchema, MeResponseSchema, LoginUser
+from .schema import (
+    LoginSchema,
+    ForgotSchema,
+    RecoverSchema,
+    MeResponseSchema,
+    LoginUser,
+)
 
 
 load_dotenv()
@@ -119,7 +125,7 @@ async def get_logged_user(request: Request, db: Session = Depends(get_database))
 
 
 # Cambio de contraseña
-@router.patch("/changepassword")
+@router.patch("/change-password")
 async def change_password(
     id: int, old_pass: str, new_pass: str, db: Session = Depends(get_database)
 ):
@@ -167,7 +173,7 @@ async def change_password(
 
 
 # Cambio de token
-@router.post("/changetoken", dependencies=[Depends(JWTBearer())])
+@router.post("/change-token", dependencies=[Depends(JWTBearer())])
 async def change_token(request: Request, refresh_token: str):
     try:
         token = decodeRefreshJWT(refresh_token)
@@ -194,11 +200,15 @@ async def change_token(request: Request, refresh_token: str):
 
 
 # Recuperación de contraseña
-@router.post("/forgotpassword")
-async def recover_password(email: str, db: Session = Depends(get_database)):
+@router.post("/forgot-password")
+async def recover_password(
+    forgot_obj: ForgotSchema, db: Session = Depends(get_database)
+):
     try:
         found_user = (
-            db.query(User).filter(User.email == email, User.state == "ACTIVE").first()
+            db.query(User)
+            .filter(User.email == forgot_obj.email, User.is_deleted == False)
+            .first()
         )
         if not found_user:
             raise HTTPException(
@@ -210,7 +220,11 @@ async def recover_password(email: str, db: Session = Depends(get_database)):
         recovery_token = create_recovery_token(found_user.id)
 
         # Envio de correo
-        await send_recover_mail(found_user.email, found_user.name, recovery_token)
+        await send_recover_mail(
+            found_user.email,
+            found_user.first_name + " " + found_user.last_name,
+            recovery_token,
+        )
 
         return JSONResponse(
             status_code=200,
@@ -226,13 +240,13 @@ async def recover_password(email: str, db: Session = Depends(get_database)):
 
 
 # Cambio de contraseña al recuperar
-@router.post("/recoverpassword")
+@router.post("/recover-password")
 async def recovery_password(
-    recover_token: str, new_pass: str, db: Session = Depends(get_database)
+    recover_obj: RecoverSchema, db: Session = Depends(get_database)
 ):
     try:
         # Se decodifica el token de recuperación
-        token = decodeRecoverJWT(recover_token)
+        token = decodeRecoverJWT(recover_obj.token)
 
         if not token:
             raise HTTPException(
@@ -241,11 +255,11 @@ async def recovery_password(
 
         user = (
             db.query(User)
-            .filter(User.state == "ACTIVE", User.id == token["sub"])
+            .filter(User.is_deleted == False, User.id == token["sub"])
             .first()
         )
 
-        setattr(user, "password", get_password_hash(new_pass))
+        setattr(user, "password", get_password_hash(recover_obj.password))
 
         db.add(user)
         db.commit()

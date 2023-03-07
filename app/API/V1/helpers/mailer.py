@@ -3,7 +3,15 @@ from fastapi import FastAPI
 from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
 
 
-from app.settings import USER_NAME, PASSWORD, MAIL_FROM, MAIL_SERVER, MAIL_PORT, ENV
+from app.settings import (
+    USER_NAME,
+    PASSWORD,
+    MAIL_FROM,
+    MAIL_SERVER,
+    MAIL_PORT,
+    ENV,
+    API_URL,
+)
 
 # Configuración del envío de correos
 conf = ConnectionConfig(
@@ -14,7 +22,7 @@ conf = ConnectionConfig(
     MAIL_SERVER=MAIL_SERVER,
     MAIL_FROM_NAME="Sergio Escalona",
     MAIL_STARTTLS=True,
-    MAIL_SSL_TLS =False,
+    MAIL_SSL_TLS=False,
     USE_CREDENTIALS=True,
     VALIDATE_CERTS=True,
     TEMPLATE_FOLDER="app/API/v1/templates",
@@ -27,9 +35,10 @@ app = FastAPI()
 async def send_recover_mail(email: str, name: str, token: str):
 
     if ENV == "development":
-        link = "http://localhost:3000/cambio_password/"
+        link = API_URL + "recover-password/"
     else:
-        link = "https://www.website.cl/cambio_password/"
+        link = "https://www.website.cl/recover-password/"
+
     message = MessageSchema(
         subject="Cambio de contraseña",
         recipients=[email],
@@ -50,11 +59,11 @@ async def send_recover_mail(email: str, name: str, token: str):
 async def send_welcome_mail(email: str, name: str, password: str):
 
     if ENV == "development":
-        link = "http://localhost:3000/login/"
+        link = API_URL + "login/"
     else:
         link = "https://www.website.cl/login/"
     message = MessageSchema(
-        subject="Bienvenido al portal Serfusan",
+        subject="Bienvenido al portal mantenedor de productos",
         recipients=[email],
         template_body={
             "link": link,

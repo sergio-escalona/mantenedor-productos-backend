@@ -16,6 +16,31 @@ class LoginSchema(BaseModel):
         }
 
 
+class ForgotSchema(BaseModel):
+    email: str
+
+    class Config:
+        orm_mode = True
+        schema_extra = {
+            "example": {
+                "email": "correo@mail.com",
+            }
+        }
+
+
+class RecoverSchema(BaseModel):
+    token: str
+    password: str
+
+    class Config:
+        orm_mode = True
+        schema_extra = {
+            "example": {
+                "email": "correo@mail.com",
+            }
+        }
+
+
 class MeResponseSchema(BaseModel):
     id: int
     first_name: str

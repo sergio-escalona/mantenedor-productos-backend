@@ -12,7 +12,9 @@ def get_db_url(env: str) -> str:
 
     return os.getenv("DATABASE_URL_DEV")
 
+
 DATABASE_URL = get_db_url(ENV)
+API_URL = os.getenv("API_URL")
 SECRET_KEY = os.getenv("SECURITY_SECRET_KEY")
 REFRESH_KEY = os.getenv("REFRESH_SECRET_KEY")
 RECOVERY_KEY = os.getenv("RECOVERY_SECRET_KEY")
