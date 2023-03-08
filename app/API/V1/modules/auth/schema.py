@@ -41,6 +41,20 @@ class RecoverSchema(BaseModel):
         }
 
 
+class ChangeSchema(BaseModel):
+    id: str
+    old_pass: str = Field(..., alias="oldPass")
+    new_pass: str = Field(..., alias="newPass")
+
+    class Config:
+        orm_mode = True
+        schema_extra = {
+            "example": {
+                "email": "correo@mail.com",
+            }
+        }
+
+
 class MeResponseSchema(BaseModel):
     id: int
     first_name: str

@@ -32,6 +32,7 @@ from .schema import (
     LoginSchema,
     ForgotSchema,
     RecoverSchema,
+    ChangeSchema,
     MeResponseSchema,
     LoginUser,
 )
@@ -70,7 +71,7 @@ async def login_user(login_obj: LoginSchema, db: Session = Depends(get_database)
         if not found_user:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Este correo no está registrado",
+                detail="Este correo o contraseña incorrecta",
             )
 
         # # Separador de la contraseña encriptada
@@ -88,7 +89,8 @@ async def login_user(login_obj: LoginSchema, db: Session = Depends(get_database)
         match_password = verify_password(login_obj.password, found_user.password)
         if not match_password:
             raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN, detail="Contraseña incorrecta"
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Este correo o contraseña incorrecta",
             )
 
         user_obj = {
@@ -125,12 +127,16 @@ async def get_logged_user(request: Request, db: Session = Depends(get_database))
 
 
 # Cambio de contraseña
-@router.patch("/change-password")
+@router.put("/change-password", response_model=MeResponseSchema)
 async def change_password(
-    id: int, old_pass: str, new_pass: str, db: Session = Depends(get_database)
+    change_obj: ChangeSchema, db: Session = Depends(get_database)
 ):
     try:
-        user = db.query(User).filter(User.state == "ACTIVE", User.id == id).first()
+        user = (
+            db.query(User)
+            .filter(User.is_deleted == False, User.id == change_obj.id)
+            .first()
+        )
 
         if not user:
             raise HTTPException(
@@ -139,7 +145,7 @@ async def change_password(
             )
 
         # Verifica que la contraseña actual coincida con la ingresada
-        match_password = verify_password(old_pass, user.password)
+        match_password = verify_password(change_obj.old_pass, user.password)
 
         if not match_password:
             raise HTTPException(
@@ -147,22 +153,19 @@ async def change_password(
                 status_code=status.HTTP_400_BAD_REQUEST,
             )
 
-        if old_pass == new_pass:
+        if change_obj.old_pass == change_obj.new_pass:
             raise HTTPException(
                 detail="Contraseñas no pueden ser iguales",
                 status_code=status.HTTP_406_NOT_ACCEPTABLE,
             )
 
-        setattr(user, "password", get_password_hash(new_pass))
+        setattr(user, "password", get_password_hash(change_obj.new_pass))
 
         db.add(user)
         db.commit()
         db.flush(user)
 
-        return JSONResponse(
-            status_code=200,
-            content={"message": "USER_UPDATED"},
-        )
+        return user
 
     except Exception as err:
         print("Error message : {0}".format(err))
