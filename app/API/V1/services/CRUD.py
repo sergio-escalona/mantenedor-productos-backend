@@ -1,10 +1,9 @@
-from typing import List, Literal, Any
+from typing import List, Literal
 from sqlalchemy.orm.session import Session
 from fastapi import status
 from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import HTTPException
 from sqlalchemy.sql.expression import or_, and_
-from fastapi_pagination import Params
 from fastapi_pagination.ext.sqlalchemy import paginate
 from app.database.base_class import Base
 from .schema import GetPaginated
@@ -148,28 +147,6 @@ class CrudService:
         db.refresh(new_item)
 
         return new_item
-
-    """
-    Create sub items in a one-to-many relation
-    """
-
-    def create_sub_item(
-        self,
-        SubModel: Base,
-        parent_id: int,
-        parent_col_name: str,
-        items: List[dict],
-        db: Session,
-    ):
-        for sub_item in items:
-            encoded_sub_item = jsonable_encoder(sub_item, by_alias=False)
-            encoded_sub_item[parent_col_name] = parent_id
-
-            db_sub_item = SubModel(**encoded_sub_item)
-
-            db.add(db_sub_item)
-            db.commit()
-            db.refresh(db_sub_item)
 
     """
     Update by id or code 

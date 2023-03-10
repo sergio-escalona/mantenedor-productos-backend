@@ -1,17 +1,14 @@
 from typing import List
-from fastapi import APIRouter, Query, Request
+from fastapi import APIRouter, Query
 from fastapi.param_functions import Depends
 from sqlalchemy import func
-from sqlalchemy.orm import contains_eager
 from sqlalchemy.orm.session import Session
-from sqlalchemy.sql.expression import or_, and_
-from fastapi_pagination import Params, Page
+from sqlalchemy.sql.expression import and_
 from starlette.responses import StreamingResponse
 from io import BytesIO
 import xlsxwriter
 from app.database.main import get_database
 from ...services.CRUD import CrudService
-from ...helpers.schema import SuccessMessage
 from ..products.model import Product
 from ..product_categories.model import ProductCategory
 

@@ -1,6 +1,5 @@
-from datetime import date, datetime
-from typing import Optional, List, Literal, Any
-from pydantic import BaseModel, Field
+from typing import List, Any
+from pydantic import BaseModel
 
 
 class GetPaginated(BaseModel):

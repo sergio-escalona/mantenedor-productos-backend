@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, Integer, String
+from sqlalchemy import Column, Integer, String
 from sqlalchemy.sql.schema import ForeignKey
 from sqlalchemy.orm import relationship
 from app.database.base_class import Base, TimestampMixin, UserOperations, DeletedMixin

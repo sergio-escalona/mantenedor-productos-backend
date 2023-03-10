@@ -1,6 +1,4 @@
-from datetime import date, datetime
-from typing import Optional, List, Literal
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 
 class SuccessMessage(BaseModel):
@@ -10,6 +8,5 @@ class SuccessMessage(BaseModel):
         schema_extra = {
             "example": {
                 "message": "Item eliminado",
-
             }
         }

@@ -4,34 +4,13 @@ This README would normally document whatever steps are necessary to get your app
 
 - First steps
 
-### Create venv
+# BUILD
 
-python3 -m venv venv
+docker-compose up --build
 
-### Run venv
+# UP
 
-source venv/bin/activate
-
-### Install Fast API
-
-pip install fastapi
-
-### or
-
-pip3 install fastapi
-
-### Install Uvicorn
-
-pip install "uvicorn[standard]"
-
-### or
-
-pip3 install "uvicorn[standard]"
-
-### Run this application
-
-uvicorn app.main:app --reload
-
+docker-compose up
 ### Add dependencies to requirements.txt
 
 pip3 freeze > requirements.txt
@@ -43,18 +22,6 @@ pip freeze > requirements.txt
 ### Install dependencies
 
 pip3 install -r requirements.txt
-
-# RUN local
-
-docker-compose up --build
-
-# BUILD
-
-sudo docker-compose -f docker-compose.prod.yml up --build -d
-
-# UP
-
-sudo docker-compose -f docker-compose.prod.yml up -d
 
 # Containers
 
